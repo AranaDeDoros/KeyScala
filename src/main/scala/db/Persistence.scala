@@ -1,32 +1,26 @@
 package org.aranadedoros
+package db
 
+import org.aranadedoros.auth.Security.{DecryptedPassword, EncryptedPassword, User}
+
+import java.nio.file.{Files, Paths, StandardOpenOption}
 import scala.collection.immutable.HashMap
 
-package object security {
+object FileUtils:
+  def writeBytes(path: String, data: Array[Byte]): Unit =
+    Files.write(
+      Paths.get(path),
+      data,
+      StandardOpenOption.CREATE,
+      StandardOpenOption.APPEND,
+      StandardOpenOption.WRITE
+    )
 
+  def readBytes(path: String): Array[Byte] =
+    Files.readAllBytes(Paths.get(path))
+
+object Persistence {
   opaque type EntryDictionary = HashMap[String, Entry]
-
-  case class User(username: String) {
-    override def toString: String = username
-  }
-
-  object Encryption {
-    def encrypt(plain: String) =
-      "encriptado"
-
-    def decrypt(encrypted: EncryptedPassword) =
-      "descencriptado"
-  }
-
-  trait Encryptable
-
-  case class DecryptedPassword(epassword: EncryptedPassword) extends Encryptable {
-    def decrypted = Encryption.decrypt(epassword)
-  }
-
-  case class EncryptedPassword(plain: String) extends Encryptable {
-    def encrypted = Encryption.encrypt(plain)
-  }
 
   case class Entry(site: String, title: String, user: User, private val passw: String) {
     def password = DecryptedPassword(EncryptedPassword(passw))
