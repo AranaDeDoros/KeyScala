@@ -5,8 +5,8 @@ import auth.Security.KeyProvider.given_SecretKey
 
 object Security {
 
-  case class User(username: String):
-    override def toString: String = username
+  case class User(name: String, passwd: String):
+    override def toString: String = s"$name | $passwd"
 
   opaque type SecretKey = Array[Byte]
 
