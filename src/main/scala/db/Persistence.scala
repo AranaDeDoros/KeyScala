@@ -1,7 +1,7 @@
 package org.aranadedoros
 package db
 
-import org.aranadedoros.auth.Security.{DecryptedPassword, EncryptedPassword, User}
+import auth.Security.{DecryptedPassword, EncryptedPassword, User}
 
 import java.nio.file.{Files, Paths, StandardOpenOption}
 import scala.collection.immutable.HashMap
@@ -27,17 +27,23 @@ object Persistence {
   }
 
   case class Database(name: String, usr: User, entries: EntryDictionary = HashMap.empty):
-    def addEntry(entry: Entry): Database =
+
+    def +(entry: Entry): Database =
       copy(entries = entries + (entry.title -> entry))
+
+    def -(title: String): Database =
+      copy(entries = entries - title)
 
     override def toString: String =
       entries.map { case (k, v) => s"$k | ${v.site} | ${v.user}" }.mkString("\n")
 
-    def searchEntry(entry: Entry): Either[String, Entry] = {
+    def /(entry: Entry): Either[String, Entry] =
       val optionEntry = entries.find((k, v) => v.title == entry.title)
       optionEntry match {
         case Some((k, v)) => Right(v)
         case None         => Left("Not found")
       }
-    }
+
+    def searchEntry(entry: Entry): Either[String, Entry] =
+      /(entry)
 }

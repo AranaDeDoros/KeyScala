@@ -6,58 +6,89 @@ import db.FileUtils
 
 import java.io.File
 import scala.io.StdIn.readLine
-import java.io.Console
 
 object Main {
 
+  private def parseCommand(args: Array[String]): Unit =
+    args.toList match
+      case "--add" :: title :: Nil =>
+        println(s"adding entry: $title")
+
+      case "--del" :: title :: Nil =>
+        println(s"deleting entry: $title")
+
+      case "--list" :: Nil =>
+        println("listing entries...")
+
+      case "--search" :: title :: Nil =>
+        println(s"searching for: $title")
+
+      case "--init" :: Nil =>
+        println("init flag received: forcing database creation")
+
+      case _ =>
+        println("invalid command")
+        println("Valid commands:")
+        println("--init | --add <title> | --del <title> | --list | --search <title>")
+
   def main(args: Array[String]): Unit =
-    // new database
 
     val key = sys.env.getOrElse("APP_SECRET", throw new Exception("APP_SECRET not set"))
     println(s"clave $key")
 
-    try {
+    try
       val dbFile = new File("db.enc")
-      if (!dbFile.exists()) {
-        // search local filename if it does not exist, ask
-        println("create database? Y/N")
-        val createDatabase = readLine()
-        val databaseExists: Unit = createDatabase match {
-          case "Y" | "y" =>
-            println("creating...")
-            println("enter username")
-            val usr = readLine()
-            println("enter master password")
-            val console: Console = System.console()
 
-            if console == null then {
-              System.exit(1)
-            }
+      if args.nonEmpty then
+        parseCommand(args)
+        return
 
-            val passwordChars = console.readPassword("Password: ")
-            val password      = String(passwordChars)
-            println(s"entered password (hidden): $password")
-            // create
-            val content      = "^".getBytes("UTF-8")
-            val userInfo     = s"$usr|$password".getBytes("UTF-8")
-            val usrEncrypted = Crypto.encrypt(userInfo)
-            val encrypted    = Crypto.encrypt(content)
-            // user info
-            FileUtils.writeBytes("usr.enc", usrEncrypted)
-            // entries
-            FileUtils.writeBytes("db.enc", encrypted)
-            println("database created")
-          case _ => System.exit(1)
-        }
-      } else {
-        // else it's on disk, ask for a command
+      if !dbFile.exists() then
+        println("creating...")
+
+        println("enter username")
+        val usr = readLine()
+
+        println("enter master password")
+        val console = System.console()
+        if console == null then System.exit(1)
+
+        val passwordChars = console.readPassword("Password: ")
+        val password      = String(passwordChars)
+        println(s"entered password (hidden): $password")
+
+        val content      = "^".getBytes("UTF-8")
+        val userInfo     = s"$usr|$password".getBytes("UTF-8")
+        val usrEncrypted = Crypto.encrypt(userInfo)
+        val encrypted    = Crypto.encrypt(content)
+
+        FileUtils.writeBytes("usr.enc", usrEncrypted)
+        FileUtils.writeBytes("db.enc", encrypted)
+
+        println("database created")
+      else
         println("database already exists, select an option \n" +
-          "add an entry (+) | delete an entry (-) | list all (*)")
-
-      }
-    } catch {
+          "add an entry (+) | delete an entry (-) | list all (*)   search (/)")
+        val cmd = readLine("command: ")
+        cmd match
+          case "+" =>
+            println("title?")
+            val title = readLine()
+            println(s"adding: $title") // integrate DB
+          case "-" =>
+            println("title?")
+            val title = readLine()
+            println(s"deleting: $title")
+          case "*" =>
+            println("listing entries...")
+          case "/" =>
+            println("search what?")
+            val title = readLine()
+            println(s"searching: $title")
+          case _ =>
+            println("unknown")
+    catch
       case e: NullPointerException => println(e.getMessage)
-    }
 
 //    val user    = User("yo")
 //    val db      = Database("test", user)
