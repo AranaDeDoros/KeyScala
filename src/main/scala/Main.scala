@@ -1,9 +1,12 @@
 package org.aranadedoros
 
-import db.FileUtils
-import db.Persistence.{Database, Entry}
+import auth.Security.EncryptedPassword
+import model.Model.{Database, Entry, EntryKey, Site as Website}
+import persistence.Persistence.FileUtils
+import serialization.Serialization.{readBytes, writeBytes}
 
 import java.io.File
+import scala.collection.immutable.HashMap
 import scala.io.StdIn.readLine
 
 object Main {
@@ -14,33 +17,60 @@ object Main {
         println(s"adding entry: $title")
         println("enter password")
         val password: String = enterPassword
-        val gh               = Entry(site, title, password)
-//        val f: Entry => Database =
-//          entry => Database(entries = hm + (entry.title -> entry))
-        val bytes = FileUtils.readBytes() // read
-        val db    = Database()            // deserialize
-        val added = db + gh
-        FileUtils.writeBytes(data = added.toString.getBytes("UTF-8"))
+        val encPassword: EncryptedPassword =
+          EncryptedPassword(password.getBytes(java.nio.charset.Charset.forName("UTF-8")))
+        val newEntry = for {
+          site <- Website(site)
+          newSite = site
+          title <- EntryKey(title)
+          newKey = title
+        } yield Entry(newSite, newKey, encPassword)
+
+        val added = newEntry match {
+          case Left(err) =>
+            println(s"Error: $err")
+          case Right(entry) =>
+            val bytes = readBytes()
+            val db    = Database()
+            val newDb = db.copy(entries = HashMap.empty) // db + current entries
+            newDb + entry
+
+        }
+        writeBytes(data = added.toString.getBytes("UTF-8"))
+        println(added)
 
       case "--del" :: title :: Nil =>
         println(s"deleting entry: $title")
         println("enter password")
-        val bytes = FileUtils.readBytes() // read
-        val db    = Database()            // deserialize
-        val added = db - title
-        FileUtils.writeBytes(data = added.toString.getBytes("UTF-8"))
+        val bytes    = readBytes()                      // read
+        val db       = Database()                       // db
+        val newDb    = db.copy(entries = HashMap.empty) // db + current entries
+        val entryKey = EntryKey(title)
+        val edited = entryKey match {
+          case Left(err)  => println(s"$err")
+          case Right(key) => newDb - key
+        }
+        writeBytes(data = edited.toString.getBytes("UTF-8"))
 
       case "--list" :: Nil =>
         println("listing entries...")
-        val bytes = FileUtils.readBytes() // read
+        val bytes = readBytes()                      // read
         val db    = Database()
-        println(db)
+        val newDb = db.copy(entries = HashMap.empty) // db + current entries
+        println(newDb)
 
       case "--search" :: title :: Nil =>
         println(s"searching for: $title")
-        val bytes = FileUtils.readBytes() // read
-        val db    = Database()            // deserialize
-        db / "github"
+        val bytes = readBytes()                      // read
+        val db    = Database()                       // deserialize
+        val newDb = db.copy(entries = HashMap.empty) // db + current entries
+
+        val entryKey = EntryKey(title)
+        val found = entryKey match {
+          case Left(err)  => println(s"$err")
+          case Right(key) => newDb / key
+        }
+        println(found)
 
       case "--init" :: Nil =>
         println("init flag received: forcing database creation")
