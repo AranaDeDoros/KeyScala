@@ -1,7 +1,11 @@
 package org.aranadedoros
 package io
 
-import org.aranadedoros.persistence.Persistence.FileUtils
+import auth.Security.EncryptedPassword
+import io.IO.{checkDB, enteredPassword}
+import model.Model.{Database, Entry, Flag}
+import persistence.Persistence.FileUtils
+import serialization.Serialization.writeBytes
 
 import java.io.File
 import scala.io.StdIn.readLine
@@ -34,3 +38,41 @@ object IO {
     val password      = String(passwordChars)
     password
 }
+
+object CommandHandler:
+  def handle(flag: Flag): Unit = flag match
+
+    case Flag.Add(site, key) =>
+      println(s"adding entry: ${key.value}")
+      println("enter password")
+
+      val password  = enteredPassword
+      val encrypted = EncryptedPassword(password.getBytes("UTF-8"))
+      val entry     = Entry(site, key, encrypted)
+
+      val db    = Database()
+      val newDb = db + entry
+
+      writeBytes(data = newDb.toString.getBytes("UTF-8"))
+      println(newDb)
+
+    case Flag.Delete(_, key) =>
+      println(s"deleting entry: ${key.value}")
+      val db    = Database()
+      val newDb = db - key
+      writeBytes(data = newDb.toString.getBytes("UTF-8"))
+      println(newDb)
+
+    case Flag.ListAll =>
+      val db = Database()
+      println(db)
+
+    case Flag.Search(key) =>
+      val db = Database()
+      println(db / key)
+
+    case Flag.Init =>
+      checkDB()
+
+    case Flag.Help =>
+      println("use a valid option (--add, --del, --list, --search, --init)")
