@@ -2,13 +2,9 @@ package org.aranadedoros
 package persistence
 
 import auth.Security.KeyProvider.given_SecretKey
-import auth.Security.{Crypto, DecryptedPassword, EncryptedPassword, User}
-
-import org.aranadedoros.model.Model.Database
-import org.aranadedoros.serialization.Serialization.writeBytes
-
-import java.nio.file.{Files, Paths, StandardOpenOption}
-import scala.collection.immutable.HashMap
+import auth.Security.{Crypto, User}
+import model.Model.Database
+import serialization.BinarySerialization.writeBytes
 
 object Persistence {
   object FileUtils:
