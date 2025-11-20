@@ -1,6 +1,6 @@
 package org.aranadedoros
 
-import io.CommandHandler
+import intout.CommandHandler
 import model.Model.Flag
 import parsing.Parsers.FlagParser
 
