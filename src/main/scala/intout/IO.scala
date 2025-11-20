@@ -24,7 +24,7 @@ object IO {
         println(s"entered password (hidden): $password")
         FileUtils.init(usr, password) match
           case Right(db) =>
-            println(s"database '$db' created !")
+            println(s"database created !")
           case Left(err) =>
             println(s"error creating database: ${err.getMessage}")
       else

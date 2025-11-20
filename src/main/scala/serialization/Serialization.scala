@@ -61,7 +61,7 @@ object JsonSerialization {
     yield Database(name, HashMap.from(list.map(r => r.key -> r.entry)))
   }
 
-  private def serialize(db: Database): Either[Throwable, Array[Byte]] =
+  def serialize(db: Database): Either[Throwable, Array[Byte]] =
     try
       val jsonString = db.asJson.noSpaces
       val raw        = jsonString.getBytes("UTF-8")
