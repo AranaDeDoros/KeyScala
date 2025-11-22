@@ -13,9 +13,8 @@ object Persistence {
       val hash    = service.generateHash(password)
       val db      = Database()
       for
-        _   <- MasterHashStorage.saveHash(hash)
-        ndb <- JsonSerialization.serialize(db)
-        serialized = ndb
-        _ <- BinarySerialization.writeBytes(serialized)
+        _          <- MasterHashStorage.saveHash(hash)
+        serialized <- JsonSerialization.serialize(db)
+        _          <- BinarySerialization.writeBytes(serialized)
       yield serialized
 }
