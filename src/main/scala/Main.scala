@@ -10,7 +10,7 @@ object Main {
 
     val key = sys.env.getOrElse("APP_SECRET", throw new Exception("APP_SECRET not set"))
     println(key)
-    val raw      = Array[String]("--list")
+    val raw      = Array[String]("--search", "gh")
     val password = enteredPassword
     val dbResult = DatabaseManager.loadOrCreate(password)
 
