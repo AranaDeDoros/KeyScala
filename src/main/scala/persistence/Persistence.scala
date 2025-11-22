@@ -3,7 +3,7 @@ package persistence
 
 import auth.Security.{MasterHashStorage, MasterPasswordService}
 import model.Model.Database
-import serialization.JsonSerialization
+import serialization.{BinarySerialization, JsonSerialization}
 
 object Persistence {
   object FileUtils:
@@ -16,5 +16,6 @@ object Persistence {
         _   <- MasterHashStorage.saveHash(hash)
         ndb <- JsonSerialization.serialize(db)
         serialized = ndb
+        _ <- BinarySerialization.writeBytes(serialized)
       yield serialized
 }
