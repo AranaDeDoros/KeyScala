@@ -12,7 +12,8 @@ object Main {
   def main(args: Array[String]): Unit =
 
     val key = sys.env.getOrElse("APP_SECRET", throw new Exception("APP_SECRET not set"))
-    val raw = args.toList
+    println(key)
+    val raw = List("--list")
 
     val flag =
       for
