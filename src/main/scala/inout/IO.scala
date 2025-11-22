@@ -29,8 +29,9 @@ object IO {
             println(s"database created !")
             Right(true)
           case Left(err) =>
-            println(s"error creating database: ${err.getStackTrace}")
+            println(s"error creating database: ${err.getStackTrace.mkString("Array(", ", ", ")")}")
             Left(err)
+
       else
         println("database already exists")
         val result =
@@ -38,7 +39,7 @@ object IO {
             hash <- MasterHashStorage.loadHash()
             mngr  = new PasswordManager(hash)
             validated <- mngr.validate(password) {
-              password.trim.length > 0 && password.trim.length >= 6
+              password.trim.nonEmpty && password.trim.length >= 6
             }.left.map(msg => new Exception(msg))
             finalResult <- if validated then
                 Right(true)
@@ -64,8 +65,10 @@ object CommandHandler:
   def handle(flag: Flag): Unit =
     flag match
       case Flag.Add(site, key) =>
+
         println(s"adding entry: ${key.value}")
         println("enter password")
+
         val password  = enteredPassword
         val encrypted = EncryptedPassword(password.getBytes("UTF-8"))
         val entry     = Entry(site, key, encrypted)
