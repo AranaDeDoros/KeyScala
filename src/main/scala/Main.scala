@@ -8,9 +8,10 @@ object Main {
 
   def main(args: Array[String]): Unit =
 
-    val key = sys.env.getOrElse("APP_SECRET", throw new Exception("APP_SECRET not set"))
-    println(key)
-    val raw      = Array[String]("--search", "gh")
+    // val key = sys.env.getOrElse("APP_SECRET", throw new Exception("APP_SECRET not set"))
+    // println(key)
+    // val raw      = Array[String]("--list")
+    println(args.mkString("Array(", ", ", ")"))
     val password = enteredPassword
     val dbResult = DatabaseManager.loadOrCreate(password)
 
@@ -18,7 +19,7 @@ object Main {
       case Left(err) =>
         println(s"Error: ${err.getMessage}")
       case Right(db) =>
-        promptFlag(raw) match
+        promptFlag(args) match
           case Left(err) => println(err)
           case Right(flag) =>
             CommandHandler.execute(db, flag, enteredPassword) match

@@ -30,7 +30,7 @@ object CommandHandler:
         val encrypted = Crypto.encrypt(DecryptedPassword(password))
         val entry     = Entry(site, key, encrypted)
         val newDb     = db + entry
-        println(s"adding entry ${key}")
+        println(s"adding entry \"${key.value}\"")
         JsonSerialization.writeDatabase(newDb).map(_ => newDb)
 
       case Flag.Delete(_, key) =>
