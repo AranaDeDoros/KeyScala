@@ -44,6 +44,5 @@ Always keep your **APP_SECRET safe**; losing it will make your database unrecove
 
 ## TODO
 - Allow cancellation of password copying.
-- Refactor Error handling with better types.
 - Add edition.
 - Make IO more pure.
