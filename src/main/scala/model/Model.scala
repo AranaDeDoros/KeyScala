@@ -6,19 +6,39 @@ import auth.Security.{Crypto, DecryptedPassword, EncryptedPassword}
 import scala.collection.immutable.{HashMap, List}
 object Model {
 
+  // domain errors
+  sealed trait DomainError:
+    def message: String
+    override def toString: String = message
+
+  case class FlagError(args: List[String]) extends DomainError:
+    def message = s"Unknown command: ${args.mkString(" ")}"
+
+  case class InvalidEntryKey(raw: String) extends DomainError:
+    def message = "Key cannot be empty."
+
+  case class NotFoundEntryKey(key: String) extends DomainError:
+    def message = "Entry not found."
+
+  case class InvalidSite(raw: String) extends DomainError:
+    def message = "Key cannot be empty."
+
+  case class WrongPassword(password: String = "<password/>"):
+    def message = "Wrong password"
+
   final case class EntryKey private (value: String) extends AnyVal
 
   object EntryKey:
-    def fromRaw(raw: String): Either[String, EntryKey] =
+    def fromRaw(raw: String): Either[InvalidEntryKey, EntryKey] =
       if raw.trim.nonEmpty then Right(EntryKey(raw.trim))
-      else Left("Key cannot be empty")
+      else Left(InvalidEntryKey(raw))
 
   final case class Site private (value: String) extends AnyVal
 
   object Site:
-    def fromRaw(raw: String): Either[String, Site] =
+    def fromRaw(raw: String): Either[InvalidSite, Site] =
       if raw.trim.nonEmpty then Right(Site(raw.trim))
-      else Left("Site cannot be empty")
+      else Left(InvalidSite(raw))
 
   case class Entry(site: Site, key: EntryKey, encrypted: EncryptedPassword):
     def password: DecryptedPassword =
@@ -74,9 +94,9 @@ object Model {
     override def toString: String =
       entries.map { case (k, v) => s" ${v.site.value} | ${v.key.value}" }.mkString("\n")
 
-    def /(key: EntryKey): Either[String, Entry] =
-      entries.get(key).toRight(s"not found ${key.value}")
+    def /(key: EntryKey): Either[NotFoundEntryKey, Entry] =
+      entries.get(key).toRight(NotFoundEntryKey(key.value))
 
-    def searchEntry(key: EntryKey): Either[String, Entry] =
+    def searchEntry(key: EntryKey): Either[NotFoundEntryKey, Entry] =
       /(key)
 }

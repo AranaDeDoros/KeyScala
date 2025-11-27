@@ -3,9 +3,10 @@ package inout
 
 import auth.Security.{Crypto, DecryptedPassword}
 import concurrency.SecureClipboard
-import model.Model.{Database, Entry, Flag}
+import model.Model.{Database, DomainError, Entry, Flag}
 import parsing.Parsers
 import serialization.JsonSerialization
+
 import scala.concurrent.duration.DurationInt
 
 object IO:
@@ -18,7 +19,7 @@ object IO:
       println("Console not available. Using StdIn.readLine as fallback:")
       scala.io.StdIn.readLine("Password: ")
 
-  def promptFlag(args: Array[String]): Either[String, Flag] =
+  def promptFlag(args: Array[String]): Either[DomainError, Flag] =
     Parsers.FlagParser.parse(args.toList)
 
 object CommandHandler:

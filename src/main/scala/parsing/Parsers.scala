@@ -1,11 +1,14 @@
 package org.aranadedoros
 package parsing
 
-import model.Model.{EntryKey, Flag, Site}
+import model.Model.{DomainError, EntryKey, Flag, FlagError, Site}
 
 object Parsers {
+
+  private type ArgsList = List[String]
+
   object FlagParser:
-    def parse(args: List[String]): Either[String, Flag] =
+    def parse(args: ArgsList): Either[DomainError, Flag] =
       args match
         case "--add" :: rawSite :: rawKey :: Nil =>
           for
@@ -26,6 +29,6 @@ object Parsers {
         case "--help" :: Nil | Nil =>
           Right(Flag.Help)
         case other =>
-          Left(s"Unknown command: ${other.mkString(" ")}")
+          Left(FlagError(other))
 
 }

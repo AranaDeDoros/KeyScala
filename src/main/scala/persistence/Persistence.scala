@@ -8,7 +8,8 @@ import java.io.File
 import scala.io.StdIn.readLine
 
 object Persistence:
-  object FileUtils:
+  // TODO handle bette persistence errors
+  private object FileUtils:
     def init(user: String, password: String): Either[Throwable, Array[Byte]] =
       // write for the 1st time
       val service = new MasterPasswordService()

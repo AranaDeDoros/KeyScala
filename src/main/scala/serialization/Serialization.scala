@@ -9,19 +9,20 @@ import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.syntax.*
 import io.circe.{Decoder, Encoder, Json}
 
-import java.nio.file.{Files, Paths, StandardOpenOption}
+import java.nio.file.{Files, Paths, Path, StandardOpenOption}
 import scala.collection.immutable.HashMap
 
 object JsonSerialization {
-
+  //// will refrain from changing the throwables
+  // for now as I believe they convey the message better
   given Encoder[Site] = Encoder.encodeString.contramap(_.value)
   given Decoder[Site] = Decoder.decodeString.emap { s =>
-    Site.fromRaw(s)
+    Site.fromRaw(s).left.map(err => s"${err.getClass.getSimpleName}: ${err.message}")
   }
 
   given Encoder[EntryKey] = Encoder.encodeString.contramap(_.value)
   given Decoder[EntryKey] = Decoder.decodeString.emap { s =>
-    EntryKey.fromRaw(s).left.map(err => err)
+    EntryKey.fromRaw(s).left.map(err => s"${err.getClass.getSimpleName}: ${err.message}")
   }
 
   given Encoder[EncryptedPassword] =
@@ -81,7 +82,7 @@ object JsonSerialization {
     catch
       case e: Throwable => Left(e)
 
-  def writeDatabase(db: Database, path: String = "db.enc"): Either[Throwable, java.nio.file.Path] =
+  def writeDatabase(db: Database, path: String = "db.enc"): Either[Throwable, Path] =
     for
       encrypted <- serialize(db)
       path      <- BinarySerialization.writeBytes(encrypted)
