@@ -44,4 +44,3 @@ Always keep your **APP_SECRET safe**; losing it will make your database unrecove
 
 ## TODO
 - Allow cancellation of password copying.
-- Add edition.

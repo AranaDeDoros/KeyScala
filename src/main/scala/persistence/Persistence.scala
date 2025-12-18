@@ -8,10 +8,8 @@ import serialization.{BinarySerialization, JsonSerialization}
 import cats.effect.IO
 
 import java.io.File
-import scala.io.StdIn.readLine
 
 object Persistence:
-  // TODO handle bette persistence errors
   private object FileUtils:
     def init(user: String, password: String): IO[Unit] =
       for

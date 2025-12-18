@@ -57,6 +57,11 @@ object Model {
       def asArgs: List[String] = List(prefix, site.value, key.value)
       def asString: String     = asArgs.mkString(" ")
 
+    case class Edit(site: Site, key: EntryKey) extends Flag with AuthorizedCommand:
+      private val prefix       = "--edit"
+      def asArgs: List[String] = List(prefix, site.value, key.value)
+      def asString: String     = asArgs.mkString(" ")
+
     case class Delete(site: Site, key: EntryKey) extends Flag with AuthorizedCommand:
       private val prefix       = "--del"
       def asArgs: List[String] = List(prefix, site.value, key.value)

@@ -3,7 +3,7 @@ package inout
 
 import auth.Security.{Crypto, DecryptedPassword}
 import concurrency.SecureClipboard
-import model.Model.{Database, DomainError, Entry, Flag}
+import model.Model.{Database, DomainError, Entry, EntryKey, Flag}
 import parsing.Parsers
 import serialization.JsonSerialization
 
@@ -25,9 +25,9 @@ object IO:
     Parsers.FlagParser.parse(args.toList)
 
 object CommandHandler:
+
   def execute(db: Database, flag: Flag, passwordPrompt: => String): cats.effect.IO[Database] =
     flag match
-
       case Flag.Add(site, key) =>
         val password  = passwordPrompt
         val encrypted = Crypto.encrypt(DecryptedPassword(password))
@@ -37,7 +37,22 @@ object CommandHandler:
           _ <- cats.effect.IO.println(s"""adding entry "${key.value}"""")
           _ <- JsonSerialization.writeDatabase(newDb)
         yield newDb
+      case Flag.Edit(site, key) =>
+        val password  = passwordPrompt
+        val encrypted = Crypto.encrypt(DecryptedPassword(password))
+        for
+          dbLoaded <- JsonSerialization
+            .readDatabase()
+            .handleError(_ => Database())
 
+          result <- dbLoaded / key match
+            case Right(entry) =>
+              val updatedEntry = Entry(site, key, encrypted)
+              cats.effect.IO.pure(dbLoaded + updatedEntry)
+
+            case Left(err) =>
+              cats.effect.IO.println(s"entry not found: $err").as(dbLoaded)
+        yield result
       case Flag.Delete(_, key) =>
         val newDb = db - key
         for
