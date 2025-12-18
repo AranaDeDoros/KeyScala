@@ -26,6 +26,9 @@ sbt run --init
 # Add an entry
 sbt "run --add example.com mykey"
 
+# Edit an entry, you will be prompted for a password again
+sbt "run --edit example.com mykey"
+
 # Delete an entry
 sbt "run --del example.com mykey"
 
