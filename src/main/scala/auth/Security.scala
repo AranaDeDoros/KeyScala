@@ -6,7 +6,7 @@ import de.mkammerer.argon2.{Argon2, Argon2Factory}
 import java.nio.file.{Files, Path, Paths}
 
 object Security {
-  // TODO handle bette security errors
+  // TODO handle better security errors
   case class User(name: String, passwd: String):
     override def toString: String = s"$name | $passwd"
 

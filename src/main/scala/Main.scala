@@ -4,6 +4,8 @@ import inout.CommandHandler
 import inout.IO.{enteredPassword, promptFlag}
 import persistence.Persistence.DatabaseManager
 
+import cats.effect.unsafe.implicits.global
+
 object Main {
 
   def main(args: Array[String]): Unit =
@@ -11,18 +13,22 @@ object Main {
     // val key = sys.env.getOrElse("APP_SECRET", throw new Exception("APP_SECRET not set"))
     // println(key)
     // val raw      = Array[String]("--list")
-    println(args.mkString("Array(", ", ", ")"))
-    val password = enteredPassword
-    val dbResult = DatabaseManager.loadOrCreate(password)
+    val program =
+      for
+        _        <- cats.effect.IO.println(args.mkString("Array(", ", ", ")"))
+        password <- cats.effect.IO(enteredPassword)
+        db       <- DatabaseManager.loadOrCreate(password)
+        flag <- cats.effect.IO.fromEither(
+          promptFlag(args)
+            .left.map(err => new Exception(err.toString))
+        )
+        _ <- CommandHandler.execute(db, flag, enteredPassword)
+        _ <- cats.effect.IO.println("Done")
+      yield ()
 
-    dbResult match
-      case Left(err) =>
-        println(s"Error: ${err.getMessage}")
-      case Right(db) =>
-        promptFlag(args) match
-          case Left(err) => println(err)
-          case Right(flag) =>
-            CommandHandler.execute(db, flag, enteredPassword) match
-              case Left(err) => println(s"Error executing command: ${err.getMessage}")
-              case Right(_)  => println("Done")
+    program
+      .handleErrorWith { err =>
+        cats.effect.IO.println(s"Error: ${err.getMessage}")
+      }
+      .unsafeRunSync()
 }

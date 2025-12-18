@@ -7,6 +7,8 @@ import model.Model.{Database, DomainError, Entry, Flag}
 import parsing.Parsers
 import serialization.JsonSerialization
 
+import cats.effect.unsafe.implicits.global
+
 import scala.concurrent.duration.DurationInt
 
 object IO:
@@ -23,7 +25,7 @@ object IO:
     Parsers.FlagParser.parse(args.toList)
 
 object CommandHandler:
-  def execute(db: Database, flag: Flag, passwordPrompt: => String): Either[Throwable, Database] =
+  def execute(db: Database, flag: Flag, passwordPrompt: => String): cats.effect.IO[Database] =
     flag match
 
       case Flag.Add(site, key) =>
@@ -31,33 +33,45 @@ object CommandHandler:
         val encrypted = Crypto.encrypt(DecryptedPassword(password))
         val entry     = Entry(site, key, encrypted)
         val newDb     = db + entry
-        println(s"adding entry \"${key.value}\"")
-        JsonSerialization.writeDatabase(newDb).map(_ => newDb)
+        for
+          _ <- cats.effect.IO.println(s"""adding entry "${key.value}"""")
+          _ <- JsonSerialization.writeDatabase(newDb)
+        yield newDb
 
       case Flag.Delete(_, key) =>
         val newDb = db - key
-        JsonSerialization.writeDatabase(newDb).map(_ => newDb)
+        for
+          _ <- JsonSerialization.writeDatabase(newDb)
+        yield newDb
 
       case Flag.ListAll =>
-        println(db)
-        Right(db)
+        cats.effect.IO.println(db).as(db)
 
       case Flag.Search(key) =>
-        val db = JsonSerialization.readDatabase() match
-          case Right(d) => d
-          case Left(_)  => Database()
-        db / key match
-          case Right(entry) =>
-            SecureClipboard.copyTemporarily(entry.password.value, 10.seconds)
-            println(s"Password for entry '${key.value}' copied to clipboard for 10 seconds")
-            Right(db)
-          case Left(err) =>
-            println(s"Entry not found: $err")
-            Right(Database())
+        for
+          dbLoaded <- JsonSerialization
+            .readDatabase()
+            .handleError(_ => Database())
+
+          result <- dbLoaded / key match
+            case Right(entry) =>
+              for
+                fiber <- SecureClipboard
+                  .copyTemporarily(entry.password.value, 10.seconds)
+                  .start
+                _ <- cats.effect.IO.println(
+                  s"Password for entry '${key.value}' copied to clipboard for 10 seconds. Press Ctrl+C to cancel"
+                )
+                _ <- fiber.join
+              yield dbLoaded
+
+            case Left(err) =>
+              cats.effect.IO.println(s"Entry not found: $err").as(dbLoaded)
+        yield result
 
       case Flag.Init =>
-        Right(db) // checkDB / init handled in DatabaseManager
+        cats.effect.IO.pure(db)
 
       case Flag.Help =>
-        println("use a valid option (--add, --del, --list, --search, --init)")
-        Right(db)
+        cats.effect.IO.println("use a valid option (--add, --del, --list, --search, --init)")
+          .as(db)

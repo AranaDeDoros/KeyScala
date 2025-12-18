@@ -5,11 +5,12 @@ import auth.Security.KeyProvider.given_SecretKey
 import auth.Security.{Crypto, EncryptedPassword}
 import model.Model.{Database, Entry, EntryKey, Site}
 
+import cats.effect.IO
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.syntax.*
 import io.circe.{Decoder, Encoder, Json}
 
-import java.nio.file.{Files, Paths, Path, StandardOpenOption}
+import java.nio.file.{Files, Path, Paths, StandardOpenOption}
 import scala.collection.immutable.HashMap
 
 object JsonSerialization {
@@ -82,16 +83,16 @@ object JsonSerialization {
     catch
       case e: Throwable => Left(e)
 
-  def writeDatabase(db: Database, path: String = "db.enc"): Either[Throwable, Path] =
+  def writeDatabase(db: Database, path: String = "db.enc"): IO[Path] =
     for
-      encrypted <- serialize(db)
+      encrypted <- IO.fromEither(serialize(db))
       path      <- BinarySerialization.writeBytes(encrypted)
     yield path
 
-  def readDatabase(path: String = "db.enc"): Either[Throwable, Database] =
+  def readDatabase(path: String = "db.enc"): IO[Database] =
     for
       bytes <- BinarySerialization.readBytes(path)
-      db    <- deserialize(bytes)
+      db    <- IO.fromEither(deserialize(bytes))
     yield db
 }
 
@@ -100,26 +101,19 @@ object BinarySerialization {
   def writeBytes(
       data: Array[Byte],
       path: String = "db.enc"
-  ): Either[Throwable, java.nio.file.Path] =
-    try
-      Right(
-        Files.write(
-          Paths.get(path),
-          data,
-          StandardOpenOption.CREATE,
-          StandardOpenOption.TRUNCATE_EXISTING
-        )
+  ): IO[Path] = {
+    IO.blocking {
+      Files.write(
+        Paths.get(path),
+        data,
+        StandardOpenOption.CREATE,
+        StandardOpenOption.TRUNCATE_EXISTING
       )
-    catch
-      case e: Throwable =>
-        Left(e)
+    }
+  }
 
-  def readBytes(path: String = "db.enc"): Either[Throwable, Array[Byte]] =
-    try
-      val bytes = Files.readAllBytes(Paths.get(path))
-      Right(bytes)
-    catch
-      case e: Throwable =>
-        Left(e)
-
+  def readBytes(path: String = "db.enc"): IO[Array[Byte]] =
+    IO.blocking {
+      Files.readAllBytes(Paths.get(path))
+    }
 }
