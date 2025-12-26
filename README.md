@@ -1,6 +1,11 @@
-# Password Manager
+# KeyScala
 
-A simple CLI password manager built with Scala 3. Stores encrypted entries locally and allows temporary clipboard access.
+<p align="center">
+ <img width="500"  alt="keyscala" src="https://github.com/user-attachments/assets/6fd98105-1c34-44d6-af08-3ba33e28141f" />
+   
+</p>
+
+<p align="center">A simple CLI password manager built with Scala 3. Stores encrypted entries locally and allows temporary clipboard access.</p>
 
 ## Stack
 - **Java 24**
