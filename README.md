@@ -45,5 +45,3 @@ sbt "run --help"
 *When searching for a password, it will be copied to the clipboard for 10 seconds for security.
 Always keep your **APP_SECRET safe**; losing it will make your database unrecoverable.*
 
-## TODO
-- Allow cancellation of password copying.

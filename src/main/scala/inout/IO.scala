@@ -71,13 +71,16 @@ object CommandHandler:
           result <- dbLoaded / key match
             case Right(entry) =>
               for
-                fiber <- SecureClipboard
-                  .copyTemporarily(entry.password.value, 10.seconds)
-                  .start
-                _ <- cats.effect.IO.println(
-                  s"Password for entry '${key.value}' copied to clipboard for 10 seconds. Press Ctrl+C to cancel"
-                )
-                _ <- fiber.join
+                _ <- SecureClipboard
+                  .resource(entry.password.value)
+                  .use { _ =>
+                    cats.effect.IO.println(
+                      s"Password copied to clipboard for 10 seconds. Press Ctrl+C to exit."
+                    ) >>
+                      cats.effect.IO.sleep(10.seconds)
+                  }.onCancel {
+                    cats.effect.IO.println("cancelled")
+                  }
               yield dbLoaded
 
             case Left(err) =>
