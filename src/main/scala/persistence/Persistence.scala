@@ -1,4 +1,4 @@
-package org.aranadedoros
+package org.aranadedoros.keyscala
 package persistence
 
 import auth.Security.{MasterHashStorage, MasterPasswordService, PasswordManager}

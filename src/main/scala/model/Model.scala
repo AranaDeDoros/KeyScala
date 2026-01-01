@@ -1,4 +1,4 @@
-package org.aranadedoros
+package org.aranadedoros.keyscala
 package model
 
 import auth.Security.{Crypto, DecryptedPassword, EncryptedPassword}

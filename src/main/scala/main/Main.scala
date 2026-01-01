@@ -1,4 +1,5 @@
-package org.aranadedoros
+package org.aranadedoros.keyscala
+package main
 
 import inout.CommandHandler
 import inout.IO.{enteredPassword, promptFlag}

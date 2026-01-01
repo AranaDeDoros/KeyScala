@@ -1,4 +1,4 @@
-package org.aranadedoros
+package org.aranadedoros.keyscala
 package auth
 
 import auth.Security.KeyProvider.given_SecretKey

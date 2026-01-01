@@ -1,4 +1,4 @@
-package org.aranadedoros
+package org.aranadedoros.keyscala
 package parsing
 
 import model.Model.{DomainError, EntryKey, Flag, FlagError, Site}
